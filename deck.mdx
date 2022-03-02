@@ -6,6 +6,7 @@ import LiveEditor from "./components/live-editor";
 import SoloEditor from "./components/solo-editor";
 import { Logo } from "./components/shared";
 import reactUsage from "./assets/react-usage.png";
+import ExternalLink from "./components/ExternalLink";
 // import CodeSandbox from "./components/CodeSandbox";
 
 
@@ -15,7 +16,7 @@ export const theme = baseTheme;
 
 
 <Head>
-  <title>Slides | React Forms</title>
+  <title>Slides | React Advanced HTTP Requests</title>
   <link
     rel="shortcut icon"
     type="image/x-icon"
@@ -29,7 +30,7 @@ export const theme = baseTheme;
 
 <Layout>
 
-## React Forms
+## React Advanced HTTP Requests
 
 <Logo />
 
@@ -53,9 +54,9 @@ export const theme = baseTheme;
 
 <Steps>
 
-- Explain why we use controlled forms (vs uncontrolled forms)
-- Implement a controlled form
-- Use form data to update state
+- Implement PATCH requests from our application
+- Implement DELETE requests from our application
+- Review how we can keep our local react state up to date when we update the database
 
 </Steps>
 
@@ -79,11 +80,16 @@ export const theme = baseTheme;
 
 <Steps>
 
-- Create a form and make it controlled
-  - Input change handlers
-  - Form submit handler
-- Handle submitting the form and update state in parent using inverse data flow
-  - **Check for understanding**: [exercise](https://codesandbox.io/s/form-exercise-vpzpd?file=/src/App.js)
+- Review changes to Project Showcase application
+  - reference README with notes about updates
+  - review new component hierarchy diagram
+- Implement the useEffect hook in App to fetch projects on load
+- Get the Project edit form working
+  - Send a PATCH request to update a project in db.json
+  - update state so that we see the updated project in `ProjectList`
+- Get the Project delete button working
+  - Send a DELETE request to remove a project from db.json
+  - update state so that we no longer see the deleted project in `ProjectList`
 
 </Steps>
 
@@ -117,388 +123,9 @@ export const theme = baseTheme;
 
 <Layout>
 
-## Refresher on Forms
+<iframe frameborder="0" style={{width:"100%", height:"700px"}} src="https://viewer.diagrams.net/?tags=%7B%7D&highlight=0000ff&edit=_blank&layers=1&nav=1&title=project-showcase-component-hierarchy.drawio.svg#Uhttps%3A%2F%2Fdrive.google.com%2Fuc%3Fid%3D1hZqlrSv2NT3GTCAJXeiWrY1MDDCI2VyN%26export%3Ddownload"></iframe>
 
-In vanilla JS, our typical process for working with forms and getting access to
-the form data in our application looked something like this:
-
-- Get the form element and listen for a submit event
-- Find the form inputs using their name attribute and grab the values
-- Do something with the form data (send a `fetch` request; update the DOM)
-
-</Layout>
-
-<Notes>
-
-
-
-</Notes>
-
-<!-- End Slide -->
-
---- 
-
-<!-- Begin Slide -->
-
-<Layout>
-
-### HTML + Vanilla JS Form submission
-
-<div>
-<SoloEditor>
-
-```jsx
-const form = document.querySelector("form");
-
-form.addEventListener("submit", (event) => {
-  event.preventDefault();
-  // access form data from the DOM
-  const nameInput = event.target.name;
-  const passwordInput = event.target.password;
-
-  const formData = {
-    name: nameInput.value,
-    password: passwordInput.value,
-  };
-  // do something with the form data
-});
-```
-
-</SoloEditor>
-</div>
-
-
-</Layout>
-
-<Notes>
-
-
-
-</Notes>
-
-<!-- End Slide -->
-
---- 
-
-<!-- Begin Slide -->
-
-<Layout>
-
-### React Controlled Forms
-
-In React, rather than looking into the DOM to get the form's input field values
-when the form is submitted, we use **state** to monitor the user's input **as
-they type**, so that our component state is always _in sync_ with the DOM.
-
-</Layout>
-
-<Notes>
-
-
-
-</Notes>
-
-<!-- End Slide -->
-
---- 
-
-<!-- Begin Slide -->
-
-<Layout>
-
-To keep track of each input's value, you need:
-
-1. Some state to manage the input's value
-2. An `onChange` listener on the input to monitor user input and update state
-3. A `value` attribute on the input that corresponds to a key in state
-
-And for the form itself, you need an `onSubmit` listener on the form to finally
-submit data.
-
-</Layout>
-
-<Notes>
-
-
-
-</Notes>
-
-<!-- End Slide -->
-
---- 
-
-<!-- Begin Slide -->
-
-<Layout>
-
-## Using Forms
-
-### Process: Making a Controlled Form
-
-1. For each input element in the form, create a new state variable
-2. Create an `onChange` handler for each input field to _update_ the corresponding state variable
-3. Connect the `value` attribute of each input field to the corresponding state variable
-
-Finally, On the `<form>` element, create an `onSubmit` listener and attach a `handleSubmit` handler to run code when the form is submitted (both controlled and uncontrolled forms will have the `onSubmit` listener)
-
-</Layout>
-
-<Notes>
-
-
-
-</Notes>
-
-<!-- End Slide -->
-
---- 
-
-<!-- Begin Slide -->
-
-<Layout>
-
-##### 🛠 Process: Making a Controlled Form (state for inputs)
-
-<small>For example, if we have a form component that looks like this:</small>
-<hr/>
-<div>
-<SoloEditor>
-
-```js
-function CommentForm() {
-  const [username, setUsername] = useState("");
-  const [comment, setComment] = useState("");
-
-  return (
-    <form>
-      <input type="text" name="username" />
-      <textarea name="comment" />
-      <button type="submit">Submit</button>
-    </form>
-  );
-}
-```
-
-</SoloEditor>
-</div>
-
-</Layout>
-
-<Notes>
-
-
-
-</Notes>
-
-<!-- End Slide -->
-
---- 
-
-<!-- Begin Slide -->
-
-<Layout>
-
-##### 🛠 Process: Making a Controlled Form (onChange listeners)
-
-<small>We could make it a _controlled form_ by attaching onChange listeners to each input:
-</small>
-<hr/>
-<div>
-<SoloEditor>
-
-```js
-function CommentForm() {
-  const [username, setUsername] = useState("");
-  const [comment, setComment] = useState("");
-
-  function handleUsernameChange(event) {
-    setUsername(event.target.value);
-  }
-
-  function handleCommentChange(event) {
-    setComment(event.target.value);
-  }
-
-  return (
-    <form>
-      <input type="text" name="username" onChange={handleUsernameChange} />
-      <textarea name="comment" onChange={handleCommentChange} />
-      <button type="submit">Submit</button>
-    </form>
-  );
-}
-```
-
-</SoloEditor>
-</div>
-
-</Layout>
-
-<Notes>
-
-
-
-</Notes>
-
-<!-- End Slide -->
-
---- 
-
-<!-- Begin Slide -->
-
-<Layout>
-
-##### 🛠 Process: Making a Controlled Form (input values)
-
-
-Doing this creates a 1-way connection wherein user input changes `state`. This
-is called an _uncontrolled form_.
-
-To make it a 2-way street wherein `state` can change the user's input, we add a
-`value` attribute to our inputs.
-
-<div>
-<SoloEditor>
-
-```jsx
-<form>
-  <input
-    type="text"
-    name="username"
-    onChange={handleUsernameChange}
-    value={username}
-  />
-  <textarea name="comment" onChange={handleCommentChange} value={comment} />
-</form>
-```
-
-</SoloEditor>
-</div>
-
-This is what creates a _controlled_ form component
-
-</Layout>
-
-<Notes>
-
-
-
-</Notes>
-
-<!-- End Slide -->
-
---- 
-
-<!-- Begin Slide -->
-
-<Layout>
-
-## Controlled Form Review
-
-Each input element in the form, has:
-
-1. a corresponding state variable
-2. an `onChange` handler to _update_ that state variable
-3. a `value` attribute set to that state variable
-
-In this way, React has total control of what appears in the controlled form's inputs because each input mirrors a piece of state.
-
-</Layout>
-
-<Notes>
-
-
-
-</Notes>
-
-<!-- End Slide -->
-
---- 
-
-<!-- Begin Slide -->
-
-<Layout>
-
-### ✅ Let's go make our `ProjectForm` component a controlled form!
-
-<Steps>
-
-1. Add state for inputs
-2. give inputs onChange to update state
-3. give inputs value so they display what's in state
-4. Add submit event handler that will send a post request to create a new project
-
-</Steps>
-
-
-
-</Layout>
-
-<Notes>
-
-
-
-</Notes>
-
-<!-- End Slide -->
-
---- 
-
-<!-- Begin Slide -->
-
-<Layout>
-
-# ☕️☕️☕️☕️☕️☕️☕️☕️ 
-# Break!
-# 🙆‍♂️🙆‍♂️🙆‍♂️🙆‍♂️🙆‍♂️🙆‍♂️🙆‍♂️🙆‍♂️
-
-</Layout>
-
-<Notes>
-
-
-
-</Notes>
-
-<!-- End Slide -->
-
---- 
-
-<!-- Begin Slide -->
-
-<Layout>
-
-## Data Flow
-
-![Component Hierarchy](https://res.cloudinary.com/dnocv6uwb/image/upload/v1643721715/component-hierarchy_zytnvg.png)
-
-Do we have an inverse data flow situation here?
-<br/>
-<br/>
-
-</Layout>
-
-<Notes>
-
-
-
-</Notes>
-
-<!-- End Slide -->
-
----
-
-<!-- Begin Slide -->
-
-<Layout>
-
-### 🔍 Identifying the Need for Inverse Data Flow
-
-![React Inverse Data Flow](https://res.cloudinary.com/dnocv6uwb/image/upload/v1643998564/react-inverse-data-flow-diagram_cqpyyh.png)
-
-What do we need to do with the `ProjectForm`?
-<br/>
-<br/>
+<ExternalLink href="https://docs.google.com/spreadsheets/d/1j46jH6TQDSaipBA_uNo1w3ZMY6TaaegP77kDTt-UbJM/edit#gid=0">Questions to answer when adding a new feature</ExternalLink>
 
 </Layout>
 
